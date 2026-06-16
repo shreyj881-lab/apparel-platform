@@ -11,7 +11,10 @@ import { SearchResult } from '@/types';
 function useSearch(q: string) {
   return useQuery<SearchResult>({
     queryKey: ['search', q],
-    queryFn: () => api.get('/search', { params: { q } }),
+    queryFn: async () => {
+      const res = await api.get<any, any>('/search', { params: { q } });
+      return { ...res.results, total: res.results?.total ?? 0 };
+    },
     enabled: q.length >= 2,
   });
 }
