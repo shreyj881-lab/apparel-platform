@@ -93,7 +93,14 @@ export class FabricsService {
     await this.colorwaysRepo.remove(cw);
     return { message: 'Colorway removed' };
   }
-
+async bulkExport() {
+    const fabrics = await this.fabricsRepo.find({
+      where: { isActive: true },
+      relations: ['colorways'],
+      order: { createdAt: 'DESC' },
+    });
+    return fabrics;
+  }
   async getFilterOptions() {
     const fabricUsed = await this.fabricsRepo.createQueryBuilder('f')
       .select('DISTINCT f.fabricUsed', 'value').where('f.isActive = true').getRawMany();
