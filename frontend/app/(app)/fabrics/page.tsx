@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Plus, Download, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AppShell } from '@/components/layout/AppShell';
@@ -28,10 +28,17 @@ export default function FabricsPage() {
   const updateMut = useUpdateFabric();
   const deleteMut = useDeleteFabric();
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: any, images: File[] = []) => {
     try {
-      if (editing) { await updateMut.mutateAsync({ id: editing.id, data: formData }); toast.success('Fabric updated'); }
-      else { await createMut.mutateAsync(formData); toast.success('Fabric created'); }
+      if (editing) {
+        await updateMut.mutateAsync({ id: editing.id, data: formData });
+        if (images.length) await fabricsApi.addImages(editing.id, images);
+        toast.success('Fabric updated');
+      } else {
+        const created = await createMut.mutateAsync(formData) as any;
+        if (images.length && created?.id) await fabricsApi.addImages(created.id, images);
+        toast.success('Fabric created');
+      }
       setShowForm(false); setEditing(null);
     } catch (e: any) { toast.error(e.message); }
   };
@@ -45,7 +52,6 @@ export default function FabricsPage() {
   return (
     <AppShell title="Fabric Library">
       <div className="space-y-5">
-        {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -60,7 +66,7 @@ export default function FabricsPage() {
           )}
           {isAdmin && (
             <>
-              <button onClick={async () => { try { const b = await fabricsApi.bulkExport(); downloadBlob(b as unknown as Blob, 'fabrics-export.xlsx'); } catch (e: any) { toast.error(e.message); }}}
+              <button onClick={async () => { try { const b = await fabricsApi.bulkExport(); downloadBlob(b as unknown as Blob, 'fabrics-export.json'); } catch (e: any) { toast.error(e.message); }}}
                 className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-muted transition">
                 <Download className="h-4 w-4" /> Export
               </button>
