@@ -60,7 +60,7 @@ export default function FabricsPage() {
           )}
           {isAdmin && (
             <>
-              <button onClick={async () => { try { const b = await fabricsApi.bulkExport(); downloadBlob(b as Blob, 'fabrics-export.xlsx'); } catch (e: any) { toast.error(e.message); }}}
+              <button onClick={async () => { try { const b = await fabricsApi.bulkExport(); downloadBlob(b as unknown as Blob, 'fabrics-export.xlsx'); } catch (e: any) { toast.error(e.message); }}}
                 className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-muted transition">
                 <Download className="h-4 w-4" /> Export
               </button>
