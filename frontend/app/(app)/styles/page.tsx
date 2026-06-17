@@ -30,5 +30,99 @@ export default function StylesPage() {
   const updateMut = useUpdateStyle();
   const deleteMut = useDeleteStyle();
 
-  const patchFilters = useCallback((f: Partial<StyleFilters>) =>
-    setFilters((prev) => ({ ...prev,
+  const patchFilters = useCallback((f: Partial<StyleFilters>) => setFilters((prev) => ({ ...prev, ...f, page: 1 })), []);
+
+  const handleSubmit = async (formData: any, images: File[] = []) => {
+    try {
+      if (editing) {
+        await updateMut.mutateAsync({ id: editing.id, data: formData });
+        if (images.length) await stylesApi.addImages(editing.id, images);
+        toast.success('Style updated');
+      } else {
+        const created = await createMut.mutateAsync(formData) as any;
+        if (images.length && created?.id) await stylesApi.addImages(created.id, images);
+        toast.success('Style created');
+      }
+      setShowForm(false); setEditing(null);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    try {
+      await deleteMut.mutateAsync(deleting.id);
+      toast.success('Style deleted');
+      setDeleting(null);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await stylesApi.bulkExport();
+      downloadBlob(blob as Blob, 'styles-export.json');
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  return (
+    <AppShell title="Styles">
+      <div className="space-y-5">
+        <div className="flex items-center gap-3 justify-between">
+          <div className="flex-1">
+            <StyleFiltersBar filters={filters} options={options} onChange={patchFilters} onReset={() => setFilters(DEFAULT)} />
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {isAdmin && (
+              <>
+                <button onClick={handleExport} className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-muted transition">
+                  <Download className="h-4 w-4" /> Export
+                </button>
+                <button onClick={() => { setEditing(null); setShowForm(true); }} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
+                  <Plus className="h-4 w-4" /> Add Style
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {data && <p className="text-xs text-muted-foreground">{data.total} style{data.total !== 1 ? 's' : ''} found</p>}
+
+        {isLoading ? <PageLoader /> : data?.items?.length ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {data.items.map((s) => (
+                <StyleCard key={s.id} style={s} isAdmin={isAdmin}
+                  onEdit={(s) => { setEditing(s); setShowForm(true); }}
+                  onDelete={setDeleting} />
+              ))}
+            </div>
+            {data.totalPages > 1 && (
+              <div className="flex justify-center gap-2 pt-4">
+                {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
+                  <button key={p} onClick={() => setFilters((f) => ({ ...f, page: p }))}
+                    className={`h-8 w-8 rounded-lg text-sm font-medium transition ${filters.page === p ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-muted'}`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <EmptyState title="No styles found" description="Try adjusting your filters or add a new style."
+            action={isAdmin ? (
+              <button onClick={() => setShowForm(true)} className="rounded-xl bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 transition">
+                Add First Style
+              </button>
+            ) : undefined} />
+        )}
+      </div>
+
+      {showForm && (
+        <StyleForm style={editing} onClose={() => { setShowForm(false); setEditing(null); }}
+          onSubmit={handleSubmit} loading={createMut.isPending || updateMut.isPending} />
+      )}
+      <ConfirmDialog open={!!deleting} variant="danger" title="Delete Style"
+        description={`Delete "${deleting?.name}"? This cannot be undone.`} confirmLabel="Delete"
+        loading={deleteMut.isPending} onConfirm={handleDelete} onCancel={() => setDeleting(null)} />
+    </AppShell>
+  );
+}
