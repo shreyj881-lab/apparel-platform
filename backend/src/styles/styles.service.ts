@@ -28,7 +28,7 @@ export class StylesService {
 
     if (search) {
       qb.andWhere(
-        '(style.name ILIKE :s OR style.brickName ILIKE :s OR style.fabricUsed ILIKE :s OR style.description ILIKE :s)',
+        '(style.name ILIKE :s OR style.brickName ILIKE :s OR style.fabricUsed ILIKE :s OR style.description ILIKE :s OR style.styleCode ILIKE :s)',
         { s: `%${search}%` },
       );
     }
