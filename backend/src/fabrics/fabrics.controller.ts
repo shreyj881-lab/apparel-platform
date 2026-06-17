@@ -1,10 +1,9 @@
 import {
   Controller, Get, Post, Put, Delete, Body, Param,
-  Query, UseGuards, UploadedFiles, UseInterceptors, Res,
+  Query, UseGuards, UploadedFiles, UseInterceptors, Header,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { FabricsService } from './fabrics.service';
 import { CreateFabricDto } from './dto/create-fabric.dto';
 import { UpdateFabricDto } from './dto/update-fabric.dto';
@@ -28,12 +27,7 @@ export class FabricsController {
   getFilterOptions() { return this.fabricsService.getFilterOptions(); }
 
   @Get('export') @ApiBearerAuth('JWT')
-  async exportAll(@Res() res: Response) {
-    const fabrics = await this.fabricsService.bulkExport();
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename=fabrics-export.json');
-    return res.json(fabrics);
-  }
+  exportAll() { return this.fabricsService.bulkExport(); }
 
   @Get(':id') @Public()
   findOne(@Param('id') id: string) { return this.fabricsService.findOne(id); }
@@ -45,4 +39,37 @@ export class FabricsController {
 
   @Put(':id') @ApiBearerAuth('JWT')
   update(@Param('id') id: string, @Body() dto: UpdateFabricDto) {
-    return this.fabricsService.update(id,
+    return this.fabricsService.update(id, dto);
+  }
+
+  @Delete(':id') @ApiBearerAuth('JWT')
+  remove(@Param('id') id: string) { return this.fabricsService.remove(id); }
+
+  @Post(':id/images') @ApiBearerAuth('JWT')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('images', 10))
+  async uploadImages(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
+    const uploaded = await Promise.all(files.map((f) => this.uploadService.uploadImage(f, 'fabrics')));
+    return this.fabricsService.addImages(id, uploaded);
+  }
+
+  @Post(':id/colorways') @ApiBearerAuth('JWT')
+  @UseInterceptors(FilesInterceptor('image', 1))
+  async addColorway(
+    @Param('id') id: string,
+    @Body() body: { colorName: string; colorCode?: string },
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    let imageData = {};
+    if (files?.length) {
+      const uploaded = await this.uploadService.uploadImage(files[0], 'colorways');
+      imageData = { imageUrl: uploaded.url, publicId: uploaded.publicId };
+    }
+    return this.fabricsService.addColorway(id, { ...body, ...imageData });
+  }
+
+  @Delete(':id/colorways/:colorwayId') @ApiBearerAuth('JWT')
+  removeColorway(@Param('id') id: string, @Param('colorwayId') colorwayId: string) {
+    return this.fabricsService.removeColorway(id, colorwayId);
+  }
+}
