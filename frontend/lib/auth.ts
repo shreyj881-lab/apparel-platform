@@ -1,15 +1,15 @@
-import { User, LoginPayload, RegisterPayload, AuthTokens } from '@/types';
+import { User, LoginPayload, RegisterPayload } from '@/types';
 import api from './api';
 
 export async function login(payload: LoginPayload): Promise<{ user: User; accessToken: string }> {
-  const data = await api.post<any, { user: User; accessToken: string }>('/auth/login', payload);
+  const data = await api.post<any, any>('/auth/login', payload);
   localStorage.setItem('accessToken', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
   return data;
 }
 
 export async function register(payload: RegisterPayload): Promise<{ user: User; accessToken: string }> {
-  const data = await api.post<any, { user: User; accessToken: string }>('/auth/register', payload);
+  const data = await api.post<any, any>('/auth/register', payload);
   localStorage.setItem('accessToken', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
   return data;
