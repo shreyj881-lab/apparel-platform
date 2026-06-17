@@ -2,8 +2,10 @@ import api from './api';
 import { Style, StyleFilters, PaginatedResponse, FilterOptions } from '@/types';
 
 export const stylesApi = {
-  getAll: (filters: StyleFilters = {}) =>
-    api.get<any, PaginatedResponse<Style>>('/styles', { params: filters }),
+  getAll: async (filters: StyleFilters = {}) => {
+    const res = await api.get<any, any>('/styles', { params: filters });
+    return { ...res, items: res.styles ?? res.items ?? [] } as PaginatedResponse<Style>;
+  },
 
   getOne: (id: string) => api.get<any, Style>(`/styles/${id}`),
 
