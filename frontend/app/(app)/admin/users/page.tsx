@@ -14,7 +14,10 @@ import { formatDate } from '@/lib/utils';
 function useUsers() {
   return useQuery<{ items: User[]; total: number }>({
     queryKey: ['users'],
-    queryFn: () => api.get('/users'),
+    queryFn: async () => {
+      const res = await api.get<any, any>('/users');
+      return { ...res, items: res.users ?? res.items ?? [] };
+    },
   });
 }
 
