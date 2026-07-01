@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Shirt, Package, Users, Search, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Shirt, Package, Users, Search, LogOut, ChevronLeft, ChevronRight, Ruler } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +10,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/styles', label: 'Styles', icon: Shirt },
   { href: '/fabrics', label: 'Fabrics', icon: Package },
+  { href: '/measurements', label: 'Measurements', icon: Ruler },
   { href: '/search', label: 'Search', icon: Search },
 ];
 const ADMIN_NAV = [

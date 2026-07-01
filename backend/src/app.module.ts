@@ -9,6 +9,8 @@ import { FabricsModule } from './fabrics/fabrics.module';
 import { UploadModule } from './upload/upload.module';
 import { SearchModule } from './search/search.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { HealthModule } from './health/health.module';
+import { MeasurementsModule } from './measurements/measurements.module';
 import { User } from './database/entities/user.entity';
 import { Style } from './database/entities/style.entity';
 import { StyleImage } from './database/entities/style-image.entity';
@@ -16,6 +18,8 @@ import { Fabric } from './database/entities/fabric.entity';
 import { FabricImage } from './database/entities/fabric-image.entity';
 import { FabricColorway } from './database/entities/fabric-colorway.entity';
 import { AuditLog } from './database/entities/audit-log.entity';
+import { Mannequin } from './measurements/entities/mannequin.entity';
+import { SpecSheet } from './measurements/entities/spec-sheet.entity';
 
 @Module({
   imports: [
@@ -27,9 +31,9 @@ import { AuditLog } from './database/entities/audit-log.entity';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get('DATABASE_URL'),
-        entities: [User, Style, StyleImage, Fabric, FabricImage, FabricColorway, AuditLog],
+        entities: [User, Style, StyleImage, Fabric, FabricImage, FabricColorway, AuditLog, Mannequin, SpecSheet],
         synchronize: true,
-        logging: config.get('NODE_ENV') === 'development',
+        logging: false,
         ssl: { rejectUnauthorized: false },
         migrations: ['dist/database/migrations/*.js'],
         migrationsRun: false,
@@ -45,6 +49,8 @@ import { AuditLog } from './database/entities/audit-log.entity';
     UploadModule,
     SearchModule,
     DashboardModule,
+    HealthModule,
+    MeasurementsModule,
   ],
 })
 export class AppModule {}
