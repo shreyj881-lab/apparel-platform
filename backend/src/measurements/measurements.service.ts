@@ -143,7 +143,7 @@ export class MeasurementsService {
     }
 
     // Call Gemini Vision
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const imagePart: Part = {
       inlineData: {
