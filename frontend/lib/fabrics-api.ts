@@ -3,7 +3,9 @@ import { Fabric, FabricFilters, PaginatedResponse } from '@/types';
 
 export const fabricsApi = {
   getAll: async (filters: FabricFilters = {}) => {
-    api.get<any, PaginatedResponse<Fabric>>('/fabrics', { params: filters }),
+    const res = await api.get<any, any>('/fabrics', { params: filters });
+    return { ...res, items: res.fabrics ?? res.items ?? [] } as PaginatedResponse<Fabric>;
+  },
 
   getOne: (id: string) => api.get<any, Fabric>(`/fabrics/${id}`),
 
